@@ -20,7 +20,6 @@ To use the credit cards logos given with this plugin, change images path in your
 D_LOGO!/wp-content/plugins/jigoshopAtosPlugin/images/!
 ```
 
-
 ----------
 
 Test mode
