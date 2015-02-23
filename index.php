@@ -1,24 +1,58 @@
 <?php
-/*
+/**
 Plugin Name: JigoshopAtos
 Text Domain: jigoshop-atos
 Plugin URI: https://github.com/chtipepere/jigoshopAtosPlugin
 Description: Extends Jigoshop with Atos SIPS gateway (French bank).
-Version: 1.0
+Version: 1.3
 Author: πR
+ **/
 
-http://blog.manit4c.com/2009/12/18/installation-dun-paiement-atos-sips-tutoriel-premiere-partie/
-http://thomasdt.com/woocommerce/
-*/
+if (!defined('JIGOSHOP_VERSION')) {
+	function jigoshop_required(){
+		echo '<div class="error"><p>'.
+		     __('<strong>Error!</strong> Jigoshop is mandatory. Please install it.', 'jigoshop-atos').
+		     '</p></div>';
+	}
+	add_action('admin_notices', 'jigoshop_required');
+	return;
+}
 
+define('JIGOSHOPATOS_PHP_VERSION', '5.4');
+define('JIGOSHOP_MINIMUM_VERSION', '1.8');
 
-add_action( 'plugins_loaded', 'jigoshop_atos_init', 0 );
+if(!version_compare(PHP_VERSION, JIGOSHOPATOS_PHP_VERSION, '>=')) {
+	function jigoshopatos_required_version(){
+		echo '<div class="error"><p>'.
+		     sprintf(__('<strong>Error!</strong> JigoshopAtos requires at least PHP %s! Your version is: %s. Please upgrade.', 'jigoshop-atos'), JIGOSHOPATOS_PHP_VERSION, PHP_VERSION).
+		     '</p></div>';
+	}
+	add_action('admin_notices', 'jigoshopatos_required_version');
+	return;
+}
+
+if(!version_compare(JIGOSHOP_VERSION, JIGOSHOP_MINIMUM_VERSION, '>=')) {
+	function jigoshop_minimum_version(){
+		echo '<div class="error"><p>'.
+		     sprintf(__('<strong>Error!</strong> JigoshopAtos requires at least Jigoshop %s! Your version is: %s. Please upgrade.', 'jigoshop-atos'), JIGOSHOP_MINIMUM_VERSION, JIGOSHOP_VERSION).
+		     '</p></div>';
+	}
+	add_action('admin_notices', 'jigoshop_minimum_version');
+	return;
+}
+
+if (function_exists('add_action')) {
+	add_action( 'plugins_loaded', 'jigoshop_atos_init', 0 );
+}
 
 function jigoshop_atos_init() {
 
 	if ( ! class_exists( 'jigoshop_payment_gateway' ) ) {
 		return;
 	}
+
+	// Jigoshop 1.8+ required
+	if (true === version_compare(JIGOSHOP_VERSION, '1.8', '<')) return;
 
 	/** Translations */
 	$plugin_dir = basename(dirname(__FILE__));
@@ -31,6 +65,18 @@ function jigoshop_atos_init() {
 		$methods[] = 'Jigoshop_atos';
 		return $methods;
 	});
+
+	include_once( 'automatic_response.php' );
+
+	add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), 'add_action_links' );
+
+	function add_action_links ( $links ) {
+		$mylinks = [
+			'<a href="' . admin_url( sprintf('admin.php?page=jigoshop_settings&tab=%s', __('payment', 'jigoshop-atos')) ) . '">'.__('Settings', 'jigoshop') . '</a>',
+			'<a href="https://github.com/chtipepere/jigoshopAtosPlugin/blob/master/README.md">'.__('Docs', 'jigoshop-atos') . '</a>'
+		];
+		return array_merge( $links, $mylinks );
+	}
 
 	/**
 	 * Gateway class
@@ -50,28 +96,26 @@ function jigoshop_atos_init() {
 			$this->method_title             = 'Atos';
 			$this->icon                     = WP_PLUGIN_URL . '/' . plugin_basename( dirname( __FILE__ ) ) . '/images/logo.gif';
 			$this->has_fields               = false;
-			$this->enabled                  = $options->get('jigoshop_atos_is_enabled');
-			$this->title                    = $options->get('jigoshop_atos_title');
-			$this->description              = $options->get('jigoshop_atos_description');
-			$this->merchant_id              = $options->get('jigoshop_atos_merchant_id');
-			$this->pathfile                 = $options->get('jigoshop_atos_pathfile');
-			$this->path_bin_request         = $options->get('jigoshop_atos_path_bin_request');
-			$this->path_bin_response        = $options->get('jigoshop_atos_path_bin_response');
-			$this->cancel_return_url        = $options->get('jigoshop_atos_cancel_return_url');
-			$this->automatic_response_url   = $options->get('jigoshop_atos_automatic_response_url');
-			$this->normal_return_url        = $options->get('jigoshop_atos_normal_return_url');
-			$this->logo_id2                 = $options->get('jigoshop_atos_logo_id2');
-			$this->advert                   = $options->get('jigoshop_atos_advert');
-			$this->currency                 = $options->get('jigoshop_currency');
+			$this->enabled                  = $options->get_option('jigoshop_atos_is_enabled');
+			$this->title                    = $options->get_option('jigoshop_atos_title');
+			$this->description              = $options->get_option('jigoshop_atos_description');
+			$this->merchant_id              = $options->get_option('jigoshop_atos_merchant_id');
+			$this->merchant_name            = $options->get_option('jigoshop_atos_merchant_name');
+			$this->pathfile                 = $options->get_option('jigoshop_atos_pathfile');
+			$this->path_bin_request         = $options->get_option('jigoshop_atos_path_bin_request');
+			$this->path_bin_response        = $options->get_option('jigoshop_atos_path_bin_response');
+			$this->cancel_return_url        = $options->get_option('jigoshop_atos_cancel_return_url');
+			$this->automatic_response_url   = $options->get_option('jigoshop_atos_automatic_response_url');
+			$this->normal_return_url        = $options->get_option('jigoshop_atos_normal_return_url');
+			$this->logo_id2                 = $options->get_option('jigoshop_atos_logo_id2');
+			$this->advert                   = $options->get_option('jigoshop_atos_advert');
+			$this->currency                 = $options->get_option('jigoshop_currency');
 			$this->notify_url               = jigoshop_request_api::query_request('?js-api=JS_Gateway_Atos', false);
 
 			$this->msg['message']           = '';
 			$this->msg['class']             = '';
 
 			add_action('receipt_jigoshop_atos', [$this, 'receipt_page']);
-			//add_action('valid-atos-request', [$this, 'successful_request']);
-
-			//add_action('jigoshop_api_js_gateway_atos', array($this, 'check_atos_response'));
 		}
 
 		/**
@@ -116,28 +160,28 @@ function jigoshop_atos_init() {
 				'name'  => __('Merchant id', 'jigoshop-atos'),
 				'tip'   => __('Merchant id given by your bank', 'jigoshop-atos'),
 				'id'    => 'jigoshop_atos_merchant_id',
-				'std'   => '011223344551112',
+				'std'   => '014022286611112',
 				'type'  => 'text'
 			];
 			$defaults[] = [
 				'name'  => __('Pathfile file', 'jigoshop-atos'),
 				'tip'   => __( 'Path to the pathfile file given by your bank', 'jigoshop-atos' ),
 				'id'    => 'jigoshop_atos_pathfile',
-				'std'   => '/var/www/site/cgi-bin/pathfile',
+				'std'   => '/var/www/site/param/pathfile',
 				'type'  => 'text'
 			];
 			$defaults[] = [
 				'name'  => __('Request bin file path', 'jigoshop-atos'),
 				'tip'   => __( 'Path to the request bin file given by your bank', 'jigoshop-atos' ),
 				'id'    => 'jigoshop_atos_path_bin_request',
-				'std'   => '/var/www/site/cgi-bin/request',
+				'std'   => '/var/www/site/bin/static/request',
 				'type'  => 'text'
 			];
 			$defaults[] = [
 				'name'  => __('Response bin file path', 'jigoshop-atos'),
 				'tip'   => __( 'Path to the response bin file given by your bank', 'jigoshop-atos' ),
 				'id'    => 'jigoshop_atos_path_bin_response',
-				'std'   => '/var/www/site/cgi-bin/response',
+				'std'   => '/var/www/site/bin/static/response',
 				'type'  => 'text'
 			];
 			$defaults[] = [
@@ -158,7 +202,7 @@ function jigoshop_atos_init() {
 				'name'  => __('Automatic response url', 'jigoshop-atos'),
 				'tip'   => __( 'URL called in case of success payment', 'jigoshop-atos' ),
 				'id'    => 'jigoshop_atos_automatic_response_url',
-				'std'   => site_url( '/wp-content/plugins/jigoshopAtosPlugin/automatic_response.php' ),
+				'std'   => site_url( '?page=12' ),
 				'type'  => 'text'
 			];
 			$defaults[] = [
@@ -211,18 +255,6 @@ function jigoshop_atos_init() {
 				echo wpautop( wptexturize( $this->mercitxt ) );
 			}
 		}
-
-/*
-		function process_payment( $order_id ) {
-			$order = &new woocommerce_order( $order_id );
-
-			return array(
-				'result'   => 'success',
-				'redirect' => add_query_arg( 'order',
-					$order->id, add_query_arg( 'key', $order->order_key,
-						get_permalink( get_option( 'woocommerce_pay_page_id' ) ) ) )
-			);
-		}*/
 
 		public function showMessage( $content ) {
 			return '<div class="box ' . $this->msg['class'] . '-box">' . $this->msg['message'] . '</div>' . $content;
@@ -294,7 +326,7 @@ function jigoshop_atos_init() {
 				$message = $tableau[3];
 			}
 			$parm_pretty = str_replace( ' ', '<br/>', $parm );
-			if (Jigoshop_Base::get_options()->get('jigoshop_demo_store') == 'yes') {
+			if (Jigoshop_Base::get_options()->get_option('jigoshop_demo_store') == 'yes') {
 				$message .= '<p>' . __('You see this because you are in demo store mode.', 'jigoshop-atos') . '</p>';
 				$message .= '<pre>' . $parm_pretty . '</pre>';
 				$message .= '<p>' . __('End of debug mode', 'jigoshop-atos') . '</p>';
