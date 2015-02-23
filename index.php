@@ -32,7 +32,6 @@ function jigoshop_atos_init() {
 		return $methods;
 	});
 
-
 	/**
 	 * Gateway class
 	 */
