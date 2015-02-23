@@ -11,6 +11,7 @@ http://blog.manit4c.com/2009/12/18/installation-dun-paiement-atos-sips-tutoriel-
 http://thomasdt.com/woocommerce/
 */
 
+
 add_action( 'plugins_loaded', 'jigoshop_atos_init', 0 );
 
 function jigoshop_atos_init() {
@@ -30,6 +31,7 @@ function jigoshop_atos_init() {
 		$methods[] = 'Jigoshop_atos';
 		return $methods;
 	});
+
 
 	/**
 	 * Gateway class
