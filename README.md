@@ -20,7 +20,15 @@ To use the credit cards logos given with this plugin, change images path in your
 D_LOGO!/wp-content/plugins/jigoshopAtosPlugin/images/!
 ```
 
+Take a look at the examples atos files provided with this plugin to put the correct values in **YOUR** param files.
 
+**Automatic response**
+
+Create a page that contains shortcode above and fill the automatic_response_url field in admin.
+
+```
+[jigoshop_atos_automatic_response]
+```
 ----------
 
 Test mode
@@ -38,3 +46,21 @@ Credit card failed infos
     Credit cart n°: 4974934125497800
     Crypt key: 655
     Expiration date: anything in the future
+
+For 3D secure test
+
+    Valid password: 00000000
+    Invalid password: anything else
+
+Security
+---------
+For security purpose, the param files **must** be located somewhere outside the webroot of your site.
+Example: if your wordpress installation is something like
+```
+/var/www/wordpress
+```
+Then your param files should be located in:
+```
+/var/atos/param/ 
+```
+ 
